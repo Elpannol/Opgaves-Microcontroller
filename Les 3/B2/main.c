@@ -7,8 +7,10 @@
 
 #include <avr/io.h>
 #include "B2.h"
-#include <util/delay.h>
 #include <avr/interrupt.h>
+#include <string.h>
+#include <limits.h>
+#include <util/delay.h>
 
 #define LCD_E 	3
 #define LCD_RS	2
@@ -17,11 +19,24 @@
 #define BIT(x) (1 << (x)) // bit position
 #define arrSize(array) (sizeof(array)/sizeof(array[0]))
 
-int firstTime = 0;
-
 void lcd_strobe_lcd_e(void);
 void lcd_write_data(unsigned char byte);
 void lcd_write_cmd(unsigned char byte);
+
+int index = 0;
+char toChar[6];
+
+ISR(INT0_vect)
+{
+	clear();
+	wait(100);
+	++index;
+
+	sprintf(toChar, "%d", index);
+
+	display_text(toChar);
+	memset(toChar, 0 ,6);
+}
 
 /******************************************************************/
 void lcd_strobe_lcd_e(void)
@@ -47,20 +62,24 @@ void wait(int ms)
 void main(void)
 {
 	// Init I/O
-	DDRD = 0xFF;			// PORTD(7) output, PORTD(6:0) input
+	DDRD = 0xF0;			// PORTD(7) output, PORTD(6:0) input
 
+
+	EICRA |= 0x06;
+	EIMSK |= 0x01;
+
+	sei();
 	// Init LCD
 	init();
 
-	int index = 0;
-	int isPushed = 0;
-
-	display_text("Niggah");
+	sprintf(toChar, "%d", index);
+	display_text(toChar);
+	memset(toChar, 0, 6);
 	// Loop forever
 	while (1)
 	{
-		wait(10000);
-		display_text("Gijs");
+		PORTD ^= (1<<7);
+		wait(500);
 	}
 }
 
@@ -94,7 +113,6 @@ void init(){
 }
 
 void display_text(char *str){
-	clear();
 	for(;*str; str++){
 		lcd_write_data(*str);
 	}
@@ -102,19 +120,22 @@ void display_text(char *str){
 
 void clear()
 {
-	if(firstTime) {
-		lcd_write_command(0x01);
-		lcd_write_command(0x02);
-		PORTC = 0x00;   // Entry mode set
-		lcd_strobe_lcd_e();
-		PORTC = 0x60;
-		lcd_strobe_lcd_e();
-	}
-	else firstTime = 1;
+	lcd_write_command(0x01);
+	lcd_write_command(0x02);
+	lcd_write_command(0x80);
 }
 
-void set_cursor(int position){
-	
+void set_cursor(int position)
+{
+	int i;
+	if(position > 0)
+	{
+		for(i = 0; i < position; i++)
+		{
+			lcd_write_command(0x14);
+			wait(100);
+		}
+	}
 }
 
 void lcd_write_data(unsigned char byte)
