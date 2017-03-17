@@ -15,7 +15,6 @@
 // wait(): busy waiting for 'ms' millisecond
 // Used library: util/delay.h
 void wait(int ms)
-{
 	for (int tms=0; tms<ms; tms++)
 	{
 		_delay_ms( 1 );			// library function (max 30 ms at 8MHz)
