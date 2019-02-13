@@ -5,12 +5,13 @@
  * Author : gijsb
  */ 
 
+#define F_CPU 8000000
+
 #include <avr/io.h>
 #include "B3.h"
 #include <avr/interrupt.h>
 #include <util/delay.h>
 
-#define F_CPU 8000000
 #define BIT(x) (1 << (x)) // bit position
 #define arrSize(array) (sizeof(array)/sizeof(array[0]))
 
@@ -41,6 +42,14 @@ void wait(int ms)
 	for(int i = 0; i < ms; i++) _delay_ms(1);
 }
 
+void timer2Init()
+{
+	OCR2 = 15;			// Compare value of counter 2
+	TIMSK |= BIT(7);	// T2 compare match interrupt enable
+	sei();				// turn_on intr all
+	TCCR2 = 0b00011101;		// compare output disconnected,CTC,RUN
+}
+
 void main(void)
 {
 	// Init I/O
@@ -55,11 +64,4 @@ void main(void)
 	}
 }
 
-void timer2Init()
-{
-	OCR2 = 15;			// Compare value of counter 2
-	TIMSK |= BIT(7);	// T2 compare match interrupt enable
-	sei();				// turn_on intr all
-	TCCR2 = 0b00011101;		// compare output disconnected,CTC,RUN
-}
 

@@ -21,7 +21,7 @@
 
 void lcd_strobe_lcd_e(void);
 void lcd_write_data(unsigned char byte);
-void lcd_write_cmd(unsigned char byte);
+void lcd_write_command(unsigned char byte);
 
 int index = 0;
 char toChar[6];
@@ -30,12 +30,13 @@ ISR(INT0_vect)
 {
 	clear();
 	wait(100);
-	++index;
+	index++;
 
 	sprintf(toChar, "%d", index);
 
 	display_text(toChar);
 	memset(toChar, 0 ,6);
+	wait(20);
 }
 
 /******************************************************************/
@@ -59,7 +60,7 @@ void wait(int ms)
 	for(int i = 0; i < ms; i++) _delay_ms(1);
 }
 
-void main(void)
+int main(void)
 {
 	// Init I/O
 	DDRD = 0xF0;			// PORTD(7) output, PORTD(6:0) input
@@ -81,6 +82,7 @@ void main(void)
 		PORTD ^= (1<<7);
 		wait(500);
 	}
+	return 1;
 }
 
 void init(){
@@ -122,7 +124,6 @@ void clear()
 {
 	lcd_write_command(0x01);
 	lcd_write_command(0x02);
-	lcd_write_command(0x80);
 }
 
 void set_cursor(int position)
