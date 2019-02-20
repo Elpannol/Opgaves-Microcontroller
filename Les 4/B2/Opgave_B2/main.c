@@ -4,6 +4,7 @@
  * Created: 9-3-2017 11:25:34
  * Author : Menno de Jong
  */ 
+#define F_CPU 8000000
 
 #include <avr/io.h>
 #include <util/delay.h>
@@ -44,6 +45,6 @@ int main( void )
 		while (ADCSRA & BIT(6));//Waits to complete the poll 
 		PORTA = ADCH;
 		PORTC ^= 1;				//Status led
-		wait(2500);				// every 100 ms (busy waiting)
+		wait(250);				// every 100 ms (busy waiting)
 	}
 }
